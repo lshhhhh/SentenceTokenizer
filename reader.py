@@ -42,7 +42,7 @@ def read_directory(dir_path):
 def match_word_idx(sent_list, vocab_size):
     word_list = []
     for s in sent_list:
-        word_list += s
+        word_list += s.split()
     
     freq_dist = FreqDist(word_list)
     freq_list = freq_dist.most_common(vocab_size)

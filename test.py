@@ -1,91 +1,61 @@
 import numpy as np
+import codecs
 import stk
+import preprocessor
 import reader
 import helpers
-
-
-def is_special_mark(c):
-    if c == '.' or c == ',' or c == '?' or c == '!' or c == '。':
-        return True
-    else:
-        return False
-
-
-def make_data(word2idx, data):
-    sent_list = []
-    for s in data:
-        sent_list.append([w if w in word2idx else reader.unk_token for w in s])
-    
-    x_data = []
-    x_mark = []
-    for s in sent_list:
-        if is_special_mark(s[-1]):
-            x_mark.append(s[-1])
-            s = s[:-1]
-        else:
-            x_mark.append(0)
-        x_data.append([word2idx[w] for w in s])
-    
-    y_data = []
-    for s in x_data:
-        tmp = []
-        for i in range(0, len(s)-1):
-            tmp.append(0)
-        tmp.append(1)
-        y_data.append(tmp)
-            
-    x_data, x_size = helpers.batch(x_data)
-    y_data, _ = helpers.batch(y_data)
-    return (x_data, y_data, x_mark, x_size)
+import tensorflow as tf
 
 
 if __name__ == '__main__':
-    '''
-    Make train data.
-    '''
-    data = []
-    data += reader.read_directory('/tmp/data1/users/dana/data/donga/enkr/kr-parallel_articles/kr_123.5')
-    #data += reader.read_directory('/tmp/data1/users/dana/data/donga/enkr/kr-parallel_articles/kr_456.6')
-    #data += reader.read_directory('/tmp/data1/users/dana/data/donga/enkr/kr-parallel_articles/kr_7890.7')
-    print('Sentence number: ', len(data))
-    
-    word2idx, idx2word = reader.match_word_idx(data, 8000)
-    x_train, y_train, x_mark, x_size = make_data(word2idx, data)
-    
-    batch_size = 16
-    seq_size = x_size
-    dic_size = len(word2idx)
-    hidden_size = 256
+    data_file = codecs.open('./data/9.kr', 'r', 'utf-8')
+    data = data_file.readlines()
+    data_file.close()
+
+    epochs = 1000
+    batch_size = 10
+    seq_size = 70
+    hidden_size = 64
     embedding_size = 64
     learning_rate = 0.1
     
+    word2idx, idx2word = reader.match_word_idx(data, 10000)
+    dic_size = len(word2idx)
+    
+    x_data, y_data, _ = preprocessor.make_parallel_data(data)
+    x_merge, y_merge = preprocessor.merge_data(x_data, y_data, seq_size)
+    num_data = len(x_merge)
+
+    #print('Num of data: {}, {}'.format(np.array(x_data).shape, np.array(y_data).shape))
+    #print('Num of merged data: {}, {}'.format(np.array(x_merge).shape, np.array(y_merge).shape))
+    
+    train_file = codecs.open('./data/kr/train.kr', 'w', 'utf-8')
+    test_file = codecs.open('./data/kr/test.kr', 'w', 'utf-8')
+    num_test = int(num_data / 5)
+    num_train = num_data - num_test
+    for i in range(num_train):
+        x_idx = []
+        for w in x_merge[i]:
+            x_idx.append(str(word2idx[w]))
+        train_file.write(' '.join(x_idx)+'\n')
+        train_file.write(' '.join(y_merge[i])+'\n')
+    for i in range(num_test):
+        x_idx = []
+        for w in x_merge[i]:
+            x_idx.append(str(word2idx[w]))
+        test_file.write(' '.join(x_idx)+'\n')
+        test_file.write(' '.join(y_merge[i])+'\n')
+    train_file.close()
+    test_file.close()
+
     stk = stk.SentenceTokenizer(
         batch_size=batch_size, seq_size=seq_size, dic_size=dic_size,
         hidden_size=hidden_size, embedding_size=embedding_size, learning_rate=learning_rate)
 
-    '''
-    Train.
-    '''
-    stk.train(x_train, y_train)
+    train_files = ['./data/kr/train.kr']
+    stk.train(train_files, epochs, num_train)
 
-
-    '''
-    Test and evaluate accuracy.
-    '''
-    test_data = '▁기분 이 좋 다. ▁기분 이 좋 아 ▁난 무엇 을 ▁하 는 거지 ?'
-    x_test, _, _, _ = make_data(word2idx, test_data)
-    print(x_test)
-    y_test = [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0]
-    print(y_test)
-    probs, result = stk.test(x_test)
-    print(result)
-
-    expect = y_test
-    total_acc = 0.
-    for i, e in enumerate(expect):
-        if np.all(expect[i] == result[i]):
-            total_acc += 1
-    total_acc /= len(expect)
-    total_acc *= 100
-    print('ACCURACY: {}'.format(total_acc))
-
+    test_files = ['./data/kr/test.kr']
+    acc = stk.test(test_files, num_test)
+    print('ACCURACY: ', acc)
+    
