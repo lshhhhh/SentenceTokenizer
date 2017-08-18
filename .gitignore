@@ -1,6 +1,7 @@
+__pycache__/*
+tmp/*
 data/kr
 data/en
 data/simple
-__pycache__/*
-ckpt/*
 merge_data.py
+nohup.out
