@@ -1,5 +1,4 @@
-class LargeConfig(object):
-    '''Large config'''
+class SmallConfig(object):
     epochs = 1
     learning_rate = 0.1
     vocab_size = 8000
@@ -11,7 +10,7 @@ class LargeConfig(object):
 
 
 class TestConfig(object):
-    '''Tiny config, for testing simple data.'''
+    '''Config for testing simple data.'''
     epochs = 1000
     learning_rate = 0.1
     vocab_size = 8000
@@ -20,4 +19,3 @@ class TestConfig(object):
     batch_size = 16
     seq_size = 70
     embedding_size = 64
-
