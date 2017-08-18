@@ -1,7 +1,5 @@
 __pycache__/*
 tmp/*
-data/kr
-data/en
-data/simple
+data/*
 merge_data.py
 nohup.out

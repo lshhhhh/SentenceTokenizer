@@ -21,17 +21,25 @@ def make_parallel_data(sent_list, word2idx):
     x_data = []
     y_data = []
     for s in sent_list:
-        tmp = []
-        for w in s:
-            if not w in word2idx:
-                w = unk_token
-            tmp.append(str(word2idx[w]))
-        x_data.append(tmp)
-        tmp = []
-        for i in range(len(s)-1):
-            tmp.append('0')
-        tmp.append('1')
-        y_data.append(tmp)
+        if len(s) > 0:
+            tmp_x = []
+            tmp_y = []
+            for w in s:
+                if not w in word2idx:
+                    w = unk_token
+                tmp_x.append(str(word2idx[w]))
+            for i in range(len(s)):
+                if i == len(s) - 1:
+                    tmp_y.append('1')
+                else:
+                    tmp_y.append('0')
+            if len(tmp_x) == len(tmp_y):
+                x_data.append(tmp_x)
+                y_data.append(tmp_y)
+            else:
+                print('x, y not match!')
+                print(s)
+                break
     return (x_data, y_data)
 
 
@@ -58,14 +66,14 @@ def merge_sentences(x_data, y_data, num_token):
      
     
 if __name__ == '__main__':
-    '''
-    Test
-    '''
-    in_file = codecs.open('./data/kr/kr.txt', 'r', 'utf-8')
+    in_file = codecs.open('./data/kr/kr.rd', 'r', 'utf-8')
+    #in_file = codecs.open('./data/simple/simple.txt.rd', 'r', 'utf-8')
     data = in_file.readlines()
     in_file.close()
+
+    out_file = codecs.open('./data/kr/kr.rd.tk', 'w', 'utf-8')
+    #out_file = codecs.open('./data/simple/simple.tk.txt', 'w', 'utf-8')
+    for d in data:
+        out_file.write(' '.join(tokenize(d))+'\n')
+    out_file.close()
     
-    x_data, y_data = make_parallel_data(data)
-    x_merge, y_merge = merge_sentences(x_data, y_data, 100)
-    print(x_data[:2])
-    print(x_merge[:2])

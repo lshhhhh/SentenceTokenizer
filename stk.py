@@ -8,24 +8,23 @@ from tensorflow.python.ops import array_ops
 
 
 class SentenceTokenizer:
-    def __init__(self, batch_size, seq_size, vocab_size, hidden_size, embedding_size, learning_rate, embeddings):
-        self.batch_size = batch_size
-        self.seq_size = seq_size
-        self.hidden_size = hidden_size
+    def __init__(self, config, embeddings):
+        self.batch_size = config.batch_size
+        self.seq_size = config.seq_size
+        self.hidden_size = config.hidden_size
     
         self.X = tf.placeholder(tf.int32, [None, None])
         self.Y = tf.placeholder(tf.int32, [None, None])
-        self.W = tf.get_variable('W', dtype=tf.float64, shape=[hidden_size, 2], initializer=tf.contrib.layers.xavier_initializer())
+        self.W = tf.get_variable('W', dtype=tf.float64, shape=[self.hidden_size, 2], initializer=tf.contrib.layers.xavier_initializer())
         self.b = tf.get_variable('b', dtype=tf.float64, shape=[2], initializer=tf.contrib.layers.xavier_initializer())
 
-        #embeddings = tf.Variable(tf.random_uniform([vocab_size, embedding_size], -1.0, 1.0), dtype=tf.float32)
         self.x_embedded = tf.nn.embedding_lookup(embeddings, self.X)
 
         self.loss = tf.reduce_mean(
             tf.contrib.seq2seq.sequence_loss(
                 logits=self.model(), targets=self.Y,
-                weights=tf.ones([batch_size, seq_size], dtype=tf.float64)))
-        self.train_op = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(self.loss)
+                weights=tf.ones([self.batch_size, self.seq_size], dtype=tf.float64)))
+        self.train_op = tf.train.AdamOptimizer(learning_rate=config.learning_rate).minimize(self.loss)
         
         self.filenames = array_ops.placeholder(dtypes.string, shape=[None])
         self.num_epochs = array_ops.placeholder(dtypes.int64, shape=[])
@@ -57,7 +56,8 @@ class SentenceTokenizer:
             tf.get_variable_scope().reuse_variables()
             sess.run(tf.global_variables_initializer())
             sess.run(self.init_batch_op, 
-                                feed_dict={self.filenames: files, self.num_epochs: epochs, 
+                                feed_dict={self.filenames: files, 
+                                           self.num_epochs: epochs, 
                                            self.num_batch: self.batch_size*2})
             
             for epoch in range(epochs):
@@ -66,11 +66,9 @@ class SentenceTokenizer:
                     x_train = []
                     y_train = []
                     file_next = sess.run(self.get_next)
-                    #print(len(file_next), self.batch_size*2)
                     for i in range(0, self.batch_size*2, 2):
                         x_train.append(file_next[i].split())
                         y_train.append(file_next[i+1].split())
-                    print(x_train)
 
                     x_train, _ = helpers.batch(x_train, self.seq_size)
                     y_train, _ = helpers.batch(y_train, self.seq_size)
