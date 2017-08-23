@@ -13,8 +13,8 @@ class SentenceTokenizer:
         self.seq_size = config.seq_size
         self.hidden_size = config.hidden_size
     
-        self.X = tf.placeholder(tf.int32, [None, None])
-        self.Y = tf.placeholder(tf.int32, [None, None])
+        self.X = tf.placeholder(tf.int32, [None, self.seq_size])
+        self.Y = tf.placeholder(tf.int32, [None, self.seq_size])
         self.W = tf.get_variable('W', dtype=tf.float64, shape=[self.hidden_size, 2], initializer=tf.contrib.layers.xavier_initializer())
         self.b = tf.get_variable('b', dtype=tf.float64, shape=[2], initializer=tf.contrib.layers.xavier_initializer())
 
@@ -76,6 +76,7 @@ class SentenceTokenizer:
             self.saver.save(sess, './tmp/model.ckpt')
     
     def test(self, files, num_data):
+        f = open('./result.txt', 'w')
         with tf.Session() as sess:
             tf.get_variable_scope().reuse_variables()
             self.saver.restore(sess, './tmp/model.ckpt')
@@ -96,6 +97,15 @@ class SentenceTokenizer:
                 #print('ANSWER: ', y_test)
                 if np.all(y_test == result):
                     total_acc += 1
+                else:
+                    f.write('\nY_test: ')
+                    print(y_test[0])
+                    f.write(str(y_test[0]))
+                    f.write('\nResult: ')
+                    f.write(str(result[0]))
+                if i % 30 == 0:
+                    f.write('\nTotal Accuracy: '+str(total_acc))
+            f.close() 
             total_acc /= num_data
-            total_acc *= 100 
+            total_acc *= 100
             return total_acc

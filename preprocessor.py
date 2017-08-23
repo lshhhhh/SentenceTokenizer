@@ -1,5 +1,9 @@
 import codecs
+import nltk
+import numpy as np
+from configs import *
 from konlpy.tag import Twitter
+
 tagger = Twitter()
 pad_token = '<pad>'
 unk_token = '<unk>'
@@ -9,7 +13,10 @@ def tokenize(sent):
     return ['/'.join(t) for t in tagger.pos(sent, norm=True, stem=False)]
 
 
-def match_token_idx(vocab):
+def build_dict(sent_list, config):
+    tokens = [t for sent in sent_list for t in sent]
+    text = nltk.Text(tokens, name='text')
+    vocab = text.vocab().most_common(config.vocab_size-2)
     word2idx = {w: i+2 for i, (w, f) in enumerate(vocab)}
     word2idx[pad_token] = 0
     word2idx[unk_token] = 1
@@ -43,26 +50,15 @@ def make_parallel_data(sent_list, word2idx):
     return (x_data, y_data)
 
 
-def merge_sentences(x_data, y_data, num_token):
-    x_merge = []
-    y_merge = []
-    tmp_x = []
-    tmp_y = []
-    for i, s in enumerate(x_data):
-        if len(s) + len(tmp_x) <= num_token:
-            tmp_x = tmp_x + s
-            tmp_y = tmp_y + y_data[i]
-        else:
-            if len(tmp_x) <= num_token:
-                x_merge.append(tmp_x)
-                y_merge.append(tmp_y)
-            tmp_x = s
-            tmp_y = y_data[i]
-    if len(tmp_x) <= num_token:
-        x_merge.append(tmp_x)
-        y_merge.append(tmp_y)
-
-    return (x_merge, y_merge)
+def divide_sentences(x_data, y_data, num_token):
+    x_flatten = [word for sent in x_data for word in sent]
+    y_flatten = [word for sent in y_data for word in sent]
+    x_divide = []
+    y_divide = []
+    for i in range(len(x_flatten)/num_token):
+        x_divide.append(x_flatten[i*num_token:(i+1)*num_token])
+        y_divide.append(y_flatten[i*num_token:(i+1)*num_token])
+    return (x_divide, y_divide)
      
     
 if __name__ == '__main__':
