@@ -93,8 +93,6 @@ class SentenceTokenizer:
                 
                 output = sess.run(self.model(), feed_dict={self.X: x_test})
                 result = np.argmax(output, axis=2)
-                #print('RESULT: ', result)
-                #print('ANSWER: ', y_test)
                 if np.all(y_test == result):
                     total_acc += 1
                 else:

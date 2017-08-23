@@ -83,8 +83,4 @@ if __name__ == '__main__':
     train_files = [train_file_path]
     stk.train(train_files, config.epochs, num_train)
     
-    #test_files = [test_file_path]
-    #acc = stk.test(test_files, num_test)
-    
-    #print('Accuracy: ', acc)
 

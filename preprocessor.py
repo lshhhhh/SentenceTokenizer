@@ -60,16 +60,3 @@ def divide_sentences(x_data, y_data, num_token):
         y_divide.append(y_flatten[i*num_token:(i+1)*num_token])
     return (x_divide, y_divide)
      
-    
-if __name__ == '__main__':
-    in_file = codecs.open('./data/kr/kr.rd', 'r', 'utf-8')
-    #in_file = codecs.open('./data/simple/simple.txt.rd', 'r', 'utf-8')
-    data = in_file.readlines()
-    in_file.close()
-
-    out_file = codecs.open('./data/kr/kr.rd.tk', 'w', 'utf-8')
-    #out_file = codecs.open('./data/simple/simple.tk.txt', 'w', 'utf-8')
-    for d in data:
-        out_file.write(' '.join(tokenize(d))+'\n')
-    out_file.close()
-    
