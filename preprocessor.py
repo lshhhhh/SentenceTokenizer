@@ -1,3 +1,8 @@
+#-*- coding: utf-8 -*-
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
 import codecs
 import nltk
 import numpy as np

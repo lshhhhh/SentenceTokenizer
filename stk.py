@@ -26,9 +26,9 @@ class SentenceTokenizer:
                 weights=tf.ones([self.batch_size, self.seq_size], dtype=tf.float64)))
         self.train_op = tf.train.AdamOptimizer(learning_rate=config.learning_rate).minimize(self.loss)
         
-        self.filenames = array_ops.placeholder(dtypes.string, shape=[None])
         self.num_epochs = array_ops.placeholder(dtypes.int64, shape=[])
         self.num_batch = array_ops.placeholder(dtypes.int64, shape=[])
+        self.filenames = array_ops.placeholder(dtypes.string, shape=[None])
 
         repeat_dataset = dataset_ops.TextLineDataset(self.filenames).repeat(self.num_epochs)
         batch_dataset = repeat_dataset.batch(self.num_batch)
@@ -61,7 +61,9 @@ class SentenceTokenizer:
                                            self.num_batch: self.batch_size*2})
             
             for epoch in range(epochs):
+                print('Epoch: ', epoch)
                 total_batch = int(num_data / self.batch_size)
+                print('Total batch: ', total_batch)
                 for i in range(total_batch):
                     x_train = []
                     y_train = []
@@ -73,12 +75,28 @@ class SentenceTokenizer:
                     x_train, _ = helpers.batch(x_train, self.seq_size)
                     y_train, _ = helpers.batch(y_train, self.seq_size)
                     _, mse = sess.run([self.train_op, self.loss], feed_dict={self.X: x_train, self.Y: y_train})
+            print('Save trained model...')
             self.saver.save(sess, './tmp/model.ckpt')
-    
-    def test(self, files, num_data):
-        f = open('./result.txt', 'w')
+
+    def test_sent(self, sent):
         with tf.Session() as sess:
             tf.get_variable_scope().reuse_variables()
+            self.saver.restore(sess, './tmp/model.ckpt')
+            
+            result = []
+            num_data = int(len(sent) / 5)
+            for i in range(num_data):
+                x_test = [sent[i*5:(i+1)*5]]
+                output = sess.run(self.model(), feed_dict={self.X: x_test})
+                tmp_result = np.argmax(output, axis=2)
+                result = np.append(result, tmp_result)
+            return result
+    
+    def test_file(self, files, num_data):
+        with tf.Session() as sess:
+            f = open('./result.txt', 'w')
+            tf.get_variable_scope().reuse_variables()
+            print('Restore trained model...')
             self.saver.restore(sess, './tmp/model.ckpt')
             sess.run(self.init_batch_op, 
                                 feed_dict={self.filenames: files, self.num_epochs: 1, self.num_batch: 2})
@@ -97,7 +115,6 @@ class SentenceTokenizer:
                     total_acc += 1
                 else:
                     f.write('\nY_test: ')
-                    print(y_test[0])
                     f.write(str(y_test[0]))
                     f.write('\nResult: ')
                     f.write(str(result[0]))
@@ -107,3 +124,4 @@ class SentenceTokenizer:
             total_acc /= num_data
             total_acc *= 100
             return total_acc
+

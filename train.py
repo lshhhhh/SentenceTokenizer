@@ -66,10 +66,9 @@ if __name__ == '__main__':
     num_data = len(x_divide)
     if num_data < 5000:
         num_test = int(num_data / 5)
-        num_train = num_data - num_test
     else:
-        num_test = num_data - 1000
-        num_train = 1000
+        num_test = 1000
+    num_train = num_data - num_test
 
     for i in range(num_test):
         test_file.write(' '.join(x_divide[i])+'\n'+' '.join(y_divide[i])+'\n')
