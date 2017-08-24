@@ -8,18 +8,18 @@ from preprocessor import *
 
 
 flags = tf.flags
-flags.DEFINE_string('model', 
-                    'test', 
-                    'A type of model. Possible options are: large, test.')
-flags.DEFINE_string('data_path', 
-                    './data/simple/simple.rd.tk', 
-                    'The path to correctly-formatted data.')
-flags.DEFINE_boolean('tensorboard', 
-                     False, 
-                     'Whether to write data to a TensorBoard summary.')
-flags.DEFINE_integer('vocab_size', 
-                     8000, 
-                     'Vocaburaly size.')
+flags.DEFINE_string(
+    'model', 
+    'test', 'A type of model. Possible options are: large, test.')
+flags.DEFINE_string(
+    'data_path', 
+    './data/simple/simple.rd.tk', 'The path to correctly-formatted data.')
+flags.DEFINE_boolean(
+    'tensorboard', 
+    False, 'Whether to write data to a TensorBoard summary.')
+flags.DEFINE_integer(
+    'vocab_size', 
+    8000, 'Vocaburaly size.')
 FLAGS = flags.FLAGS
 
 
@@ -82,4 +82,3 @@ if __name__ == '__main__':
     train_files = [train_file_path]
     stk.train(train_files, config.epochs, num_train)
     
-

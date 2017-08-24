@@ -60,7 +60,7 @@ def divide_sentences(x_data, y_data, num_token):
     y_flatten = [word for sent in y_data for word in sent]
     x_divide = []
     y_divide = []
-    for i in range(len(x_flatten)/num_token):
+    for i in range(len(x_flatten) / num_token):
         x_divide.append(x_flatten[i*num_token:(i+1)*num_token])
         y_divide.append(y_flatten[i*num_token:(i+1)*num_token])
     return (x_divide, y_divide)

@@ -53,6 +53,7 @@ class SentenceTokenizer:
 
     def train(self, files, epochs, num_data):
         with tf.Session() as sess:
+            f = open('./train_result.txt', 'w')
             tf.get_variable_scope().reuse_variables()
             sess.run(tf.global_variables_initializer())
             sess.run(self.init_batch_op, 
@@ -72,15 +73,17 @@ class SentenceTokenizer:
                         x_train.append(file_next[i].split())
                         y_train.append(file_next[i+1].split())
 
-                    x_train, _ = helpers.batch(x_train, self.seq_size)
-                    y_train, _ = helpers.batch(y_train, self.seq_size)
                     _, mse = sess.run([self.train_op, self.loss], feed_dict={self.X: x_train, self.Y: y_train})
+                    if i % 100 == 0:
+                        f.write('\nIter {}) Loss: '.format(i)+str(mse))
             print('Save trained model...')
             self.saver.save(sess, './tmp/model.ckpt')
+            f.close()
 
     def test_sent(self, sent):
         with tf.Session() as sess:
             tf.get_variable_scope().reuse_variables()
+            print('Restore trained model...')
             self.saver.restore(sess, './tmp/model.ckpt')
             
             result = []
@@ -94,7 +97,7 @@ class SentenceTokenizer:
     
     def test_file(self, files, num_data):
         with tf.Session() as sess:
-            f = open('./result.txt', 'w')
+            f = open('./test_result.txt', 'w')
             tf.get_variable_scope().reuse_variables()
             print('Restore trained model...')
             self.saver.restore(sess, './tmp/model.ckpt')
@@ -106,18 +109,14 @@ class SentenceTokenizer:
                 file_next = sess.run(self.get_next)
                 x_test = [file_next[0].split()]
                 y_test = [file_next[1].split()]
-                x_test, _ = helpers.batch(x_test, self.seq_size)
-                y_test, _ = helpers.batch(y_test, self.seq_size)
                 
                 output = sess.run(self.model(), feed_dict={self.X: x_test})
                 result = np.argmax(output, axis=2)
                 if np.all(y_test == result):
                     total_acc += 1
                 else:
-                    f.write('\nY_test: ')
-                    f.write(str(y_test[0]))
-                    f.write('\nResult: ')
-                    f.write(str(result[0]))
+                    f.write('\nY_test: '+str(y_test[0]))
+                    f.write('\nResult: '+str(result[0]))
                 if i % 30 == 0:
                     f.write('\nTotal Accuracy: '+str(total_acc))
             f.close() 
