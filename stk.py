@@ -53,7 +53,7 @@ class SentenceTokenizer:
 
     def train(self, files, epochs, num_data):
         with tf.Session() as sess:
-            f = open('./train_result.txt', 'w')
+            f = open('./data/result/train_result.txt', 'w')
             tf.get_variable_scope().reuse_variables()
             sess.run(tf.global_variables_initializer())
             sess.run(self.init_batch_op, 
@@ -97,7 +97,7 @@ class SentenceTokenizer:
     
     def test_file(self, files, num_data):
         with tf.Session() as sess:
-            f = open('./test_result.txt', 'w')
+            f = open('./data/result/test_result.txt', 'w')
             tf.get_variable_scope().reuse_variables()
             print('Restore trained model...')
             self.saver.restore(sess, './tmp/model.ckpt')
