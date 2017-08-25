@@ -87,9 +87,9 @@ class SentenceTokenizer:
             self.saver.restore(sess, './tmp/model.ckpt')
             
             result = []
-            num_data = int(len(sent) / 5)
+            num_data = int(len(sent) / self.seq_size)
             for i in range(num_data):
-                x_test = [sent[i*5:(i+1)*5]]
+                x_test = [sent[i*self.seq_size:(i+1)*self.seq_size]]
                 output = sess.run(self.model(), feed_dict={self.X: x_test})
                 tmp_result = np.argmax(output, axis=2)
                 result = np.append(result, tmp_result)
